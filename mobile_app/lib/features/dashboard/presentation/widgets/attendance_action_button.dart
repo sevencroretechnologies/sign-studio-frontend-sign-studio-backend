@@ -15,8 +15,8 @@ import '../../../attendance/presentation/pages/selfie_capture_page.dart';
 
 /// Primary attendance action for the dashboard.
 ///
-/// Clock In runs the full flow: fresh GPS → front-camera selfie → base64 →
-/// submit → refresh status. Clock Out is wired in Phase 6.
+/// Clock In and Clock Out run the same flow: fresh GPS → front-camera selfie →
+/// base64 → submit → refresh status.
 class AttendanceActionButton extends ConsumerStatefulWidget {
   const AttendanceActionButton({super.key, required this.status});
 
@@ -35,6 +35,18 @@ class _AttendanceActionButtonState
     return _runFlow(
       title: 'Clock In',
       submit: (repo, pos, image) => repo.clockInSelf(
+        latitude: pos.latitude,
+        longitude: pos.longitude,
+        accuracy: pos.accuracy,
+        image: image,
+      ),
+    );
+  }
+
+  Future<void> _clockOut() {
+    return _runFlow(
+      title: 'Clock Out',
+      submit: (repo, pos, image) => repo.clockOutSelf(
         latitude: pos.latitude,
         longitude: pos.longitude,
         accuracy: pos.accuracy,
@@ -120,12 +132,6 @@ class _AttendanceActionButtonState
     );
   }
 
-  void _notImplemented(String phase) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('This action is implemented in $phase.')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final status = widget.status;
@@ -145,7 +151,7 @@ class _AttendanceActionButtonState
         icon: Icons.logout_rounded,
         color: Theme.of(context).colorScheme.primary,
         busy: _busy,
-        onPressed: () => _notImplemented('Phase 6'),
+        onPressed: _clockOut,
       );
     }
     if (status.isClockedOut) {
