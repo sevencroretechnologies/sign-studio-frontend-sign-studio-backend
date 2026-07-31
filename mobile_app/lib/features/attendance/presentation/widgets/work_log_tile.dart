@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
-/// A single attendance-history row: date, clock in/out, status badge and
-/// optional total hours / late minutes.
+import '../../../../core/theme/app_cards.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/status_badge.dart';
+
+/// A single attendance-history record card: date + status badge, clock in/out
+/// and optional total hours / late minutes. Mirrors a React work-log row
+/// adapted to a mobile card.
 class WorkLogTile extends StatelessWidget {
   const WorkLogTile({
     super.key,
@@ -24,87 +31,65 @@ class WorkLogTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    dateLabel,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                _StatusBadge(label: statusLabel, color: statusColor),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _TimeCell(
-                    icon: Icons.login_rounded,
-                    label: 'In',
-                    value: clockIn,
-                  ),
-                ),
-                Expanded(
-                  child: _TimeCell(
-                    icon: Icons.logout_rounded,
-                    label: 'Out',
-                    value: clockOut,
-                  ),
-                ),
-                if (totalHours != null)
-                  Expanded(
-                    child: _TimeCell(
-                      icon: Icons.hourglass_bottom_rounded,
-                      label: 'Hours',
-                      value: totalHours!.toStringAsFixed(2),
-                    ),
-                  ),
-              ],
-            ),
-            if (lateMinutes > 0) ...[
-              const SizedBox(height: 8),
-              Text(
-                '$lateMinutes min late',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_rounded,
+                size: 16,
+                color: AppColors.muted,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(dateLabel, style: AppTextStyles.tileValue),
+              ),
+              StatusBadge(label: statusLabel, color: statusColor),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(height: 1),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: _TimeCell(
+                  icon: Icons.login_rounded,
+                  iconColor: AppColors.success,
+                  label: 'Clock In',
+                  value: clockIn,
                 ),
               ),
+              Expanded(
+                child: _TimeCell(
+                  icon: Icons.logout_rounded,
+                  iconColor: AppColors.danger,
+                  label: 'Clock Out',
+                  value: clockOut,
+                ),
+              ),
+              if (totalHours != null)
+                Expanded(
+                  child: _TimeCell(
+                    icon: Icons.hourglass_bottom_rounded,
+                    iconColor: AppColors.primary,
+                    label: 'Hours',
+                    value: totalHours!.toStringAsFixed(2),
+                  ),
+                ),
             ],
+          ),
+          if (lateMinutes > 0) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '$lateMinutes min late',
+              style: AppTextStyles.tileLabel.copyWith(color: AppColors.warning),
+            ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+        ],
       ),
     );
   }
@@ -113,34 +98,30 @@ class _StatusBadge extends StatelessWidget {
 class _TimeCell extends StatelessWidget {
   const _TimeCell({
     required this.icon,
+    required this.iconColor,
     required this.label,
     required this.value,
   });
 
   final IconData icon;
+  final Color iconColor;
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 15, color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
+            Icon(icon, size: 15, color: iconColor),
+            const SizedBox(width: AppSpacing.xs),
+            Text(label, style: AppTextStyles.tileLabel),
           ],
         ),
         const SizedBox(height: 2),
-        Text(value, style: theme.textTheme.titleSmall),
+        Text(value, style: AppTextStyles.tileValue.copyWith(fontSize: 15)),
       ],
     );
   }

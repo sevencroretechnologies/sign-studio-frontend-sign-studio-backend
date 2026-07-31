@@ -3,10 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_buttons.dart';
+import '../../../../core/theme/app_cards.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_notice.dart';
 import '../../application/auth_service.dart';
 
 /// Login screen. Submits credentials to `POST /auth/sign-in`; on success the
 /// session becomes authenticated and the router redirects to the dashboard.
+///
+/// Mirrors the React `Login.tsx`: a centred "Welcome back" card with a blue
+/// primary submit button and a top error alert showing the backend message.
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
@@ -58,100 +68,108 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xxl,
+              vertical: AppSpacing.xxxl,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Icon(
-                      Icons.access_time_filled_rounded,
-                      size: 64,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppConstants.appName,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Sign in to record your attendance',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    if (_errorMessage != null) ...[
-                      _ErrorBanner(message: _errorMessage!),
-                      const SizedBox(height: 16),
-                    ],
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      enabled: !_isSubmitting,
-                      autofillHints: const [AutofillHints.username],
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.person_outline_rounded),
-                      ),
-                      validator: (value) =>
-                          (value == null || value.trim().isEmpty)
-                              ? 'Please enter your email'
-                              : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      enabled: !_isSubmitting,
-                      autofillHints: const [AutofillHints.password],
-                      onFieldSubmitted: (_) => _submit(),
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outline_rounded),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _Brand(),
+                  const SizedBox(height: AppSpacing.xxl),
+                  AppCard(
+                    padding: const EdgeInsets.all(AppSpacing.xxl),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Welcome back',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.pageTitle,
                           ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            'Enter your credentials to access your account',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.cardDescription,
                           ),
-                        ),
+                          const SizedBox(height: AppSpacing.xxl),
+                          if (_errorMessage != null) ...[
+                            AppNotice(
+                              message: _errorMessage!,
+                              variant: AppNoticeVariant.error,
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                          ],
+                          const _FieldLabel('Email, Username, or Phone'),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            enabled: !_isSubmitting,
+                            autofillHints: const [AutofillHints.username],
+                            decoration: const InputDecoration(
+                              hintText: 'username, email, or phone number',
+                              prefixIcon: Icon(Icons.person_outline_rounded),
+                            ),
+                            validator: (value) =>
+                                (value == null || value.trim().isEmpty)
+                                    ? 'Email, Username, or Phone Number is '
+                                        'required'
+                                    : null,
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          const _FieldLabel('Password'),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            textInputAction: TextInputAction.done,
+                            enabled: !_isSubmitting,
+                            autofillHints: const [AutofillHints.password],
+                            onFieldSubmitted: (_) => _submit(),
+                            decoration: InputDecoration(
+                              hintText: 'Enter your password',
+                              prefixIcon:
+                                  const Icon(Icons.lock_outline_rounded),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: AppColors.base1,
+                                ),
+                                onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
+                              ),
+                            ),
+                            validator: (value) =>
+                                (value == null || value.isEmpty)
+                                    ? 'Password is required'
+                                    : null,
+                          ),
+                          const SizedBox(height: AppSpacing.xxl),
+                          AppButton(
+                            label: 'Sign in',
+                            loadingLabel: 'Signing in…',
+                            loading: _isSubmitting,
+                            onPressed: _submit,
+                          ),
+                        ],
                       ),
-                      validator: (value) => (value == null || value.isEmpty)
-                          ? 'Please enter your password'
-                          : null,
                     ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _isSubmitting ? null : _submit,
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              height: 22,
-                              width: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2.5),
-                            )
-                          : const Text('Sign In'),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -161,31 +179,48 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
+class _Brand extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          height: 64,
+          width: 64,
+          decoration: BoxDecoration(
+            color: AppColors.tint(AppColors.primary),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+          ),
+          child: const Icon(
+            Icons.access_time_filled_rounded,
+            size: AppDimensions.iconXl,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          AppConstants.appName,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.cardTitle,
+        ),
+      ],
+    );
+  }
+}
 
-  final String message;
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text);
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline_rounded, color: scheme.onErrorContainer),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(color: scheme.onErrorContainer),
-            ),
-          ),
-        ],
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.base02,
       ),
     );
   }

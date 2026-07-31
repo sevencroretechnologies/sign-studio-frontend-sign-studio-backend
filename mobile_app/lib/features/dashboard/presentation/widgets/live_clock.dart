@@ -2,7 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-/// A large ticking clock showing the current local time and date.
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
+/// The "Current Time" content: a large blue ticking clock over the date with a
+/// calendar icon — mirrors the React `Current Time` card.
 class LiveClock extends StatefulWidget {
   const LiveClock({super.key});
 
@@ -29,37 +34,38 @@ class _LiveClockState extends State<LiveClock> {
   }
 
   static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
   ];
   static const _weekdays = [
-    'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+    'Sunday',
   ];
 
   String _two(int v) => v.toString().padLeft(2, '0');
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final time = '${_two(_now.hour)}:${_two(_now.minute)}:${_two(_now.second)}';
     final date =
-        '${_weekdays[_now.weekday - 1]}, ${_now.day} ${_months[_now.month - 1]} ${_now.year}';
+        '${_weekdays[_now.weekday - 1]}, ${_now.day} ${_months[_now.month - 1]} '
+        '${_now.year}';
 
     return Column(
       children: [
-        Text(
-          time,
-          style: theme.textTheme.displaySmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          date,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+        Text(time, style: AppTextStyles.clock),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.calendar_today_rounded,
+              size: 16,
+              color: AppColors.muted,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(date, style: AppTextStyles.pageSubtitle),
+          ],
         ),
       ],
     );
