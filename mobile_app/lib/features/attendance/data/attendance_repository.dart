@@ -24,6 +24,59 @@ class AttendanceRepository {
       throw ApiException.fromDioException(e);
     }
   }
+
+  /// Submits a self clock-in. Returns the backend `message` (shown verbatim).
+  Future<String> clockInSelf({
+    required double latitude,
+    required double longitude,
+    double? accuracy,
+    String? image,
+  }) =>
+      _submitClock(
+        ApiEndpoints.clockInSelf,
+        latitude: latitude,
+        longitude: longitude,
+        accuracy: accuracy,
+        image: image,
+        fallback: 'Clocked in successfully',
+      );
+
+  /// Submits a self clock-out. Returns the backend `message` (shown verbatim).
+  Future<String> clockOutSelf({
+    required double latitude,
+    required double longitude,
+    double? accuracy,
+    String? image,
+  }) =>
+      _submitClock(
+        ApiEndpoints.clockOutSelf,
+        latitude: latitude,
+        longitude: longitude,
+        accuracy: accuracy,
+        image: image,
+        fallback: 'Clocked out successfully',
+      );
+
+  Future<String> _submitClock(
+    String endpoint, {
+    required double latitude,
+    required double longitude,
+    double? accuracy,
+    String? image,
+    required String fallback,
+  }) async {
+    try {
+      final res = await _dio.post(endpoint, data: {
+        'latitude': latitude,
+        'longitude': longitude,
+        'accuracy': accuracy,
+        'image': image,
+      });
+      return (res.data['message'] as String?) ?? fallback;
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
 }
 
 final attendanceRepositoryProvider = Provider<AttendanceRepository>(
