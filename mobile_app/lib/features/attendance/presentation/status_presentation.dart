@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../data/models/current_status.dart';
 
 /// Maps backend attendance status codes to display label / color / icon.
+///
+/// Colours mirror the React module: clocked-in → green, clocked-out → blue,
+/// holiday → indigo, leave → blue, everything else → muted. History statuses
+/// (present/absent/late/half_day/leave) follow `MyWorkLogs.getStatusBadge`.
 class StatusPresentation {
   const StatusPresentation._();
 
   static String label(String status) {
     switch (status) {
       case AttendanceStatusCode.notClockedIn:
-        return 'Not clocked in';
+        return 'Not Clocked In';
       case AttendanceStatusCode.clockedIn:
-        return 'Clocked in';
+        return 'Clocked In';
       case AttendanceStatusCode.clockedOut:
-        return 'Clocked out';
+        return 'Clocked Out';
       case AttendanceStatusCode.onLeave:
-        return 'On leave';
+        return 'On Leave';
       case AttendanceStatusCode.holiday:
         return 'Holiday';
       default:
@@ -40,19 +45,25 @@ class StatusPresentation {
     }
   }
 
-  static Color color(BuildContext context, String status) {
-    final scheme = Theme.of(context).colorScheme;
+  static Color color(String status) {
     switch (status) {
       case AttendanceStatusCode.clockedIn:
-        return Colors.green.shade600;
+      case 'present':
+        return AppColors.success;
       case AttendanceStatusCode.clockedOut:
-        return scheme.primary;
       case AttendanceStatusCode.onLeave:
-        return Colors.orange.shade700;
+      case 'leave':
+        return AppColors.primary;
       case AttendanceStatusCode.holiday:
-        return Colors.purple.shade400;
+        return AppColors.indigo;
+      case 'late':
+        return AppColors.warning;
+      case 'half_day':
+        return AppColors.orange;
+      case 'absent':
+        return AppColors.danger;
       default:
-        return scheme.onSurfaceVariant;
+        return AppColors.muted;
     }
   }
 }

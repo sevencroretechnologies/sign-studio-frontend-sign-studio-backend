@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_exception.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../application/work_logs_controller.dart';
 import '../../data/models/work_log.dart';
 import '../status_presentation.dart';
 import '../widgets/work_log_tile.dart';
 
 /// Attendance history: paginated list of the user's work logs with
-/// pull-to-refresh and infinite scroll.
+/// pull-to-refresh and infinite scroll. Mirrors the React "My Work Logs" page.
 class AttendanceHistoryPage extends ConsumerStatefulWidget {
   const AttendanceHistoryPage({super.key});
 
@@ -45,7 +49,7 @@ class _AttendanceHistoryPageState
     final logsAsync = ref.watch(workLogsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Attendance History')),
+      appBar: AppBar(title: const Text('My Work Logs')),
       body: logsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorView(
@@ -58,16 +62,34 @@ class _AttendanceHistoryPageState
         data: (state) => RefreshIndicator(
           onRefresh: () =>
               ref.read(workLogsControllerProvider.notifier).refresh(),
-          child: state.items.isEmpty
-              ? const _EmptyView()
-              : _LogsList(
-                  state: state,
-                  controller: _scrollController,
-                  onRetryMore: () =>
-                      ref.read(workLogsControllerProvider.notifier).loadMore(),
-                ),
+          child: _LogsList(
+            state: state,
+            controller: _scrollController,
+            onRetryMore: () =>
+                ref.read(workLogsControllerProvider.notifier).loadMore(),
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('My Work Logs', style: AppTextStyles.pageTitle),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'View your attendance records and work history',
+          style: AppTextStyles.pageSubtitle,
+        ),
+        const SizedBox(height: AppSpacing.section),
+      ],
     );
   }
 }
@@ -86,21 +108,34 @@ class _LogsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = state.items;
+
+    if (items.isEmpty) {
+      return ListView(
+        controller: controller,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppSpacing.page),
+        children: const [_Header(), _EmptyView()],
+      );
+    }
+
     return ListView.separated(
       controller: controller,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      itemCount: items.length + 1,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
+      padding: const EdgeInsets.all(AppSpacing.page),
+      itemCount: items.length + 2,
+      separatorBuilder: (_, index) =>
+          SizedBox(height: index == 0 ? 0 : AppSpacing.md),
       itemBuilder: (context, index) {
-        if (index < items.length) {
-          final WorkLog log = items[index];
+        if (index == 0) return const _Header();
+        final itemIndex = index - 1;
+        if (itemIndex < items.length) {
+          final WorkLog log = items[itemIndex];
           return WorkLogTile(
             dateLabel: log.dateLabel,
             clockIn: log.clockInLabel,
             clockOut: log.clockOutLabel,
             statusLabel: StatusPresentation.label(log.status),
-            statusColor: StatusPresentation.color(context, log.status),
+            statusColor: StatusPresentation.color(log.status),
             lateMinutes: log.lateMinutes,
             totalHours: log.totalHours,
           );
@@ -121,13 +156,13 @@ class _ListFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     if (state.isLoadingMore) {
       return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
         child: Center(child: CircularProgressIndicator()),
       );
     }
     if (state.loadMoreError != null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         child: Center(
           child: TextButton.icon(
             onPressed: onRetryMore,
@@ -139,18 +174,13 @@ class _ListFooter extends StatelessWidget {
     }
     if (!state.hasMore) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         child: Center(
-          child: Text(
-            'No more records',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
+          child: Text('No more records', style: AppTextStyles.tileLabel),
         ),
       );
     }
-    return const SizedBox(height: 24);
+    return const SizedBox(height: AppSpacing.xxl);
   }
 }
 
@@ -159,17 +189,24 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        const SizedBox(height: 120),
-        Icon(
-          Icons.event_busy_rounded,
-          size: 56,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        const SizedBox(height: 16),
-        const Center(child: Text('No attendance records yet.')),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(top: 80),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.event_busy_rounded,
+            size: AppDimensions.iconHero,
+            color: AppColors.muted,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('No work logs found', style: AppTextStyles.cardTitle),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Your attendance records will appear here.',
+            style: AppTextStyles.pageSubtitle,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -183,17 +220,17 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       children: [
-        const SizedBox(height: 120),
-        Icon(
+        const SizedBox(height: 100),
+        const Icon(
           Icons.cloud_off_rounded,
-          size: 56,
-          color: Theme.of(context).colorScheme.error,
+          size: AppDimensions.iconHero,
+          color: AppColors.danger,
         ),
-        const SizedBox(height: 16),
-        Text(message, textAlign: TextAlign.center),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.lg),
+        Text(message, textAlign: TextAlign.center, style: AppTextStyles.body),
+        const SizedBox(height: AppSpacing.xl),
         Center(
           child: OutlinedButton.icon(
             onPressed: onRetry,
