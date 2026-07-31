@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_logo.dart';
 
 /// Shown while the session status is being restored from secure storage.
 class SplashPage extends StatelessWidget {
@@ -8,26 +9,14 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.access_time_filled_rounded,
-              size: 72,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppConstants.appName,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const CircularProgressIndicator(),
+            AppLogo(height: 72),
+            SizedBox(height: AppSpacing.xxl),
+            CircularProgressIndicator(),
           ],
         ),
       ),

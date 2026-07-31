@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_exception.dart';
-import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_buttons.dart';
 import '../../../../core/theme/app_cards.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/app_notice.dart';
 import '../../application/auth_service.dart';
 
@@ -182,29 +181,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 class _Brand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          height: 64,
-          width: 64,
-          decoration: BoxDecoration(
-            color: AppColors.tint(AppColors.primary),
-            borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-          ),
-          child: const Icon(
-            Icons.access_time_filled_rounded,
-            size: AppDimensions.iconXl,
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          AppConstants.appName,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.cardTitle,
-        ),
-      ],
-    );
+    return const AppLogo(height: 72);
   }
 }
 
